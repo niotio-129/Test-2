@@ -1,0 +1,467 @@
+
+--==================================================
+-- ARCHIVES+
+-- VERSION 2.5: A-200 SPECIAL GUEST
+--==================================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextChatService = game:GetService("TextChatService")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local LatestRoom = ReplicatedStorage.GameData.LatestRoom
+
+--==================================================
+-- ENTITY SCHEDULER
+--==================================================
+
+local lastEntitySpawn = 0
+local MIN_ENTITY_GAP = 25
+
+local function runEntity(name, url, minTime, maxTime, roomDelay)
+    task.spawn(function()
+        while true do
+            task.wait(math.random(minTime, maxTime))
+
+            LatestRoom.Changed:Wait()
+            task.wait(roomDelay or 1)
+
+            local elapsed = os.clock() - lastEntitySpawn
+            local remaining = MIN_ENTITY_GAP - elapsed
+
+            if remaining > 0 then
+                task.wait(remaining)
+            end
+
+            lastEntitySpawn = os.clock()
+
+            local success, err = pcall(function()
+                local source = game:HttpGet(url)
+                local loadedScript = loadstring(source)
+
+                assert(loadedScript, "Failed to compile " .. name)
+
+                loadedScript()
+            end)
+
+            if not success then
+                warn("[Archives+] " .. name .. " failed: " .. tostring(err))
+            else
+                print("[Archives+] " .. name .. " was triggered.")
+            end
+        end
+    end)
+end
+
+--==================================================
+-- ENTITY CONFIGURATION
+--==================================================
+
+-- COMMON
+
+runEntity(
+    "Shocker",
+    "https://raw.githubusercontent.com/ItzzGabbbb/MainStuffGABSDOORSMODS/refs/heads/main/HardcoreModeRemake/Shocker",
+    30, 90, 1
+)
+
+runEntity(
+    "Ripper",
+    "https://raw.githubusercontent.com/ItzzGabbbb/RipperSpawner/refs/heads/main/RipperEntityFromHardcoreMode.lua",
+    90, 130, 1
+)
+
+-- UNCOMMON
+
+runEntity(
+    "Cease",
+    "https://raw.githubusercontent.com/titanic514/Customentity.lua/refs/heads/main/CeaseMod",
+    130, 210, 1
+)
+
+
+
+runEntity(
+    "Firebrand",
+    "https://raw.githubusercontent.com/Ilikerobloxdoors/Firebrand/refs/heads/main/Firebrand.lua",
+    240, 430, 1
+)
+
+
+
+runEntity(
+    "B-244",
+    "https://pastefy.app/9dkXpSyy/raw",
+    200, 400, 1
+)
+
+runEntity(
+    "R-40",
+    "https://raw.githubusercontent.com/ItzzGabbbb/R-40-Spawner-Fixed/refs/heads/main/Doors%20Entity%20R-40.txt",
+    490, 520, 1
+)
+
+-- RARE
+
+runEntity(
+    "Rayleigh",
+    "https://raw.githubusercontent.com/sonicu645-cyber/Entities/main/Curious%20Bash.lua",
+    540, 690, 1
+)
+
+runEntity(
+    "Monoxide",
+    "https://raw.githubusercontent.com/eoyoustme/back/refs/heads/main/Monoxide1",
+    600, 900, 1
+)
+
+runEntity(
+    "Paralysis",
+    "https://pastefy.app/BOBsMow0/raw",
+    450, 500, 1
+)
+
+-- VERY RARE
+
+runEntity(
+    "Spacecrack",
+    "https://raw.githubusercontent.com/ItzzGabbbb/MainStuffGABSDOORSMODS/refs/heads/main/DoorsScripts/SpaceCrackSpawner",
+    2000, 3450, 1
+)
+
+runEntity(
+    "Banflee",
+    "https://pastefy.app/r5hIrJYg/raw",
+    980, 1130, 1
+)
+
+-- RAREST
+
+runEntity(
+    "GOD",
+    "https://pastefy.app/lAn7TCVE/raw",
+    1800, 3000, 1
+)
+
+--==================================================
+-- A-200 SPECIAL GUEST
+--==================================================
+
+local A200SpawnerURL =
+    "https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"
+
+local A200AchievementURL =
+    "https://raw.githubusercontent.com/Drop56796/A200-achievement/main/A200.lua"
+
+local function runA200()
+
+    local success, err = pcall(function()
+
+        local spawner = loadstring(
+            game:HttpGet(A200SpawnerURL)
+        )()
+
+        local entity = spawner.Create({
+
+            Entity = {
+                Name = "A200",
+                Asset = "https://github.com/Isth4t/DoorsModels/blob/main/200Moving.rbxm?raw=true",
+                HeightOffset = 0
+            },
+
+            Lights = {
+                Flicker = {
+                    Enabled = true,
+                    Duration = 1
+                },
+
+                Shatter = true,
+                Repair = false
+            },
+
+            CameraShake = {
+                Enabled = true,
+                Range = 100,
+                Values = {1.5, 20, 0.1, 1}
+            },
+
+            Movement = {
+                Speed = 65,
+                Delay = 2,
+                Reversed = true
+            },
+
+            Rebounding = {
+                Enabled = false,
+                Type = "Ambush",
+                Min = 1,
+                Max = 1,
+                Delay = 0.2
+            },
+
+            Damage = {
+                Enabled = true,
+                Range = 37,
+                Amount = 100
+            },
+
+            Crucifixion = {
+                Enabled = true,
+                Range = 40,
+                Resist = false,
+                Break = true
+            },
+
+            Death = {
+                Type = "Guiding",
+
+                Hints = {
+                    "You died to 200..",
+                    "It's slow..",
+                    "Hide when it comes..",
+                    "Goodbye..",
+                    "...",
+                    "You can do it..."
+                },
+
+                Cause = "A200"
+            }
+        })
+
+        entity:SetCallback("OnSpawned", function()
+            print("[Archives+] A-200 has spawned!")
+        end)
+
+        entity:SetCallback("OnStartMoving", function()
+            print("[Archives+] A-200 is moving.")
+        end)
+
+        entity:SetCallback("OnEnterRoom", function(room, firstTime)
+            if firstTime then
+                print("[Archives+] A-200 entered " .. room.Name)
+            end
+        end)
+
+        entity:SetCallback("OnRebounding", function(startOfRebound)
+            if startOfRebound then
+                print("[Archives+] A-200 started rebounding.")
+            else
+                print("[Archives+] A-200 finished rebounding.")
+            end
+        end)
+
+        entity:SetCallback("OnDespawning", function()
+            print("[Archives+] A-200 is despawning.")
+        end)
+
+        entity:SetCallback("OnDespawned", function()
+            print("[Archives+] A-200 has despawned.")
+
+            task.wait(1)
+
+            local achievementSuccess, achievementError = pcall(function()
+                loadstring(game:HttpGet(A200AchievementURL))()
+            end)
+
+            if not achievementSuccess then
+                warn("[Archives+] A-200 achievement failed: " .. tostring(achievementError))
+            end
+        end)
+
+        entity:SetCallback("OnDamagePlayer", function(newHealth)
+            if newHealth == 0 then
+                print("[Archives+] A-200 killed the player.")
+            else
+                print("[Archives+] A-200 damaged the player.")
+            end
+        end)
+
+        entity:Run()
+
+    end)
+
+    if not success then
+        warn("[Archives+] A-200 failed: " .. tostring(err))
+    end
+end
+
+-- A-200 scheduling is independent of ordinary entity scripts.
+
+task.spawn(function()
+    while true do
+        task.wait(math.random(1500, 2100))
+
+        LatestRoom.Changed:Wait()
+
+        local elapsed = os.clock() - lastEntitySpawn
+        local remaining = MIN_ENTITY_GAP - elapsed
+
+        if remaining > 0 then
+            task.wait(remaining)
+        end
+
+        lastEntitySpawn = os.clock()
+
+        runA200()
+    end
+end)
+
+--==================================================
+-- CHAT TAGS
+--==================================================
+
+local whitelist = {
+    -- Add credited usernames here.
+}
+
+local devs = {
+    -- Add developer usernames here.
+}
+
+local function isWhitelisted(username)
+    for _, name in ipairs(whitelist) do
+        if name == username then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function isDev(username)
+    for _, name in ipairs(devs) do
+        if name == username then
+            return true
+        end
+    end
+
+    return false
+end
+
+TextChatService.OnIncomingMessage = function(msg)
+
+    local properties = Instance.new("TextChatMessageProperties")
+
+    if msg.TextSource then
+
+        local username = msg.TextSource.Name
+
+        if isWhitelisted(username) then
+
+            properties.PrefixText =
+                "<font color='#0000FF'>[Credit]</font> " .. msg.PrefixText
+
+        elseif isDev(username) then
+
+            properties.PrefixText =
+                "<font color='#00FF00'>[Dev]</font> " .. msg.PrefixText
+
+        else
+
+            properties.PrefixText =
+                "<font color='#FF0000'>[Player]</font> " .. msg.PrefixText
+
+        end
+    end
+
+    return properties
+end
+
+
+local function lowerPitch(sound)
+    sound.PlaybackSpeed = sound.PlaybackSpeed * 0.69
+end
+
+for _, descendant in ipairs(game:GetDescendants()) do
+
+    if descendant:IsA("Sound")
+    and descendant.Name == "SeekMusic" then
+
+        lowerPitch(descendant)
+
+    end
+end
+
+
+local MainGame = require(
+    LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game
+)
+
+MainGame.caption("Welcome to Archives+ V2.5!", true)
+
+task.wait(3)
+
+MainGame.caption("Made by Niotio!!", true)
+
+task.wait(3)
+
+MainGame.caption(
+    "a certain secret entity maybe present",
+    true
+)
+
+task.wait(3)
+
+MainGame.caption(
+    "Expect bugs because this is still in beta testing. Things are subject to change.",
+    true
+)
+
+
+local MainUI = LocalPlayer.PlayerGui.MainUI
+local originalIntro = MainUI.MainFrame.IntroText
+
+local intro = originalIntro:Clone()
+
+intro.Parent = MainUI
+intro.Name = "ArchivesPlusIntro"
+intro.Visible = true
+intro.Text = "Archives+"
+intro.TextTransparency = 0
+
+local underline = UDim2.new(1.1, 0, 0.015, 6)
+
+TweenService:Create(
+    intro.Underline,
+    TweenInfo.new(3),
+    {Size = underline}
+):Play()
+
+task.wait(7)
+
+TweenService:Create(
+    intro.Underline,
+    TweenInfo.new(1.3),
+    {Size = UDim2.new(0.95, 0, 0.015, 6)}
+):Play()
+
+task.wait(1)
+
+TweenService:Create(
+    intro.Underline,
+    TweenInfo.new(2),
+    {ImageTransparency = 1}
+):Play()
+
+TweenService:Create(
+    intro,
+    TweenInfo.new(2),
+    {TextTransparency = 1}
+):Play()
+
+TweenService:Create(
+    intro.Underline,
+    TweenInfo.new(7),
+    {Size = UDim2.new(0, 0, 0.015, 6)}
+):Play()
+
+task.wait(2.3)
+
+intro.Visible = false
+
+task.wait(5)
+
+intro:Destroy()
+
+print("[Archives+] V2 loaded successfully.")
