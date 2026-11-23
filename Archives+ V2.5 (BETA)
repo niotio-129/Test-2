@@ -113,7 +113,7 @@ runEntity(
 runEntity(
     "Monoxide",
     "https://raw.githubusercontent.com/eoyoustme/back/refs/heads/main/Monoxide1",
-    600, 900, 1
+    800, 900, 1
 )
 
 runEntity(
@@ -133,7 +133,7 @@ runEntity(
 runEntity(
     "Banflee",
     "https://pastefy.app/r5hIrJYg/raw",
-    980, 1130, 1
+    600, 1130, 1
 )
 
 -- RAREST
