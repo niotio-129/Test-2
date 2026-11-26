@@ -1,7 +1,6 @@
 --==================================================
 -- ARCHIVES TRYHARD MODE
--- VERSION 2.5: A-200 SPECIAL GUEST
--- BASED ON FAVORITES MODE
+-- VERSION 3
 --==================================================
 
 local Players = game:GetService("Players")
@@ -80,7 +79,7 @@ local lastSpawnedRooms = {
     Banflee = -10,
     A60 = -10,
     GOD = -10,
-    A200 = -10
+    Threat = -10
 }
 
 --==================================================
@@ -258,6 +257,68 @@ end
 --==================================================
 -- ENTITY CONFIGURATION
 --==================================================
+local function spawnThreat()
+if entityActive or not isSafeToSpawn() then return end
+entityActive = true
+lastSpawnedRooms.Threat = LatestRoom.Value
+print("[Favorites Mode] Threat spawning")
+
+local pinkColor = Color3.fromRGB(255, 20, 147)  
+for _, v in pairs(workspace:GetDescendants()) do  
+	if v:IsA("PointLight") or v:IsA("SpotLight") then  
+		v.Color = pinkColor  
+	end  
+end  
+
+local Threat = Spawner:Create({  
+	Entity = {  
+		Name = "Threat",  
+		Asset = "https://raw.githubusercontent.com/FireGiraffe/Favorites-Mode-Doors/main/Threat.rbxm",  
+		HeightOffset = 0  
+	},  
+	Movement = {Speed = 425, Delay = 1, Reversed = false},  
+	Damage = {Enabled = true, IgnoreHiding = false, Range = 45, Amount = 125},  
+	Rebounding = {Enabled = true, Type = "Ambush", Min = 5, Max = 8, Delay = 2},  
+	Lights = {Flicker = {Enabled = true, Duration = 1}, Shatter = false, Repair = false},  
+	Earthquake = {Enabled = false},  
+	CameraShake = {Enabled = true, Values = {1.8, 75, 0.1, 1}, Range = 120},  
+	Crucifixion = {Type = "Curious", Enabled = true, Range = 40, Resist = false, Break = true},  
+	Death = {  
+		Type = "Guiding",  
+		Hints = {"You died to Threat.", "The lights turn pink signaling its arrival.", "Threat is also extremely loud, indicating when it rebounds.", "Use what you've learned from Ambush!"},  
+		Cause = "Threat"  
+	}  
+})  
+
+Threat:SetCallback("OnSpawned", function()  
+	local model = Threat.Model  
+	if not model then return end  
+
+	local spawnSound = Instance.new("Sound")  
+	spawnSound.SoundId = "rbxassetid://3359047385"  
+	spawnSound.Volume = 2  
+	spawnSound.Parent = workspace  
+	spawnSound:Play()  
+	game:GetService("Debris"):AddItem(spawnSound, 5)  
+
+	local baseSound = Instance.new("Sound")  
+	baseSound.SoundId = "rbxassetid://92141520425325"  
+	baseSound.Volume = 1.8  
+	baseSound.Looped = false  
+	baseSound.Parent = model  
+	baseSound:Play()  
+end)  
+
+Threat:SetCallback("OnDespawned", function()  
+	entityActive = false  
+end)  
+
+Threat:Run(true)
+
+end
+
+
+---
 
 local Entities = {
     {
@@ -428,180 +489,6 @@ LatestRoom:GetPropertyChangedSignal("Value"):Connect(function()
 end)
 
 --==================================================
--- A-200 SPECIAL GUEST
---==================================================
-
-local A200SpawnerURL =
-    "https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"
-
-local A200AchievementURL =
-    "https://raw.githubusercontent.com/Drop56796/A200-achievement/main/A200.lua"
-
-local function runA200()
-    if not canSpawn("A200") then
-        return
-    end
-
-    entityActive = true
-    lastSpawnedRooms.A200 = LatestRoom.Value
-    lastEntitySpawn = os.clock()
-
-    print("[Archives Tryhard Mode] A-200 spawning.")
-
-    local success, err = pcall(function()
-        local spawner = loadstring(
-            game:HttpGet(A200SpawnerURL)
-        )()
-
-        local entity = spawner.Create({
-            Entity = {
-                Name = "A200",
-                Asset = "https://github.com/Isth4t/DoorsModels/blob/main/200Moving.rbxm?raw=true",
-                HeightOffset = 0
-            },
-
-            Lights = {
-                Flicker = {
-                    Enabled = true,
-                    Duration = 1
-                },
-                Shatter = true,
-                Repair = false
-            },
-
-            CameraShake = {
-                Enabled = true,
-                Range = 100,
-                Values = {1.5, 20, 0.1, 1}
-            },
-
-            Movement = {
-                Speed = 65,
-                Delay = 2,
-                Reversed = true
-            },
-
-            Rebounding = {
-                Enabled = false,
-                Type = "Ambush",
-                Min = 1,
-                Max = 1,
-                Delay = 0.2
-            },
-
-            Damage = {
-                Enabled = true,
-                Range = 37,
-                Amount = 100
-            },
-
-            Crucifixion = {
-                Enabled = true,
-                Range = 40,
-                Resist = false,
-                Break = true
-            },
-
-            Death = {
-                Type = "Guiding",
-                Hints = {
-                    "You died to 200..",
-                    "It's slow..",
-                    "Hide when it comes..",
-                    "Goodbye..",
-                    "...",
-                    "You can do it..."
-                },
-                Cause = "A200"
-            }
-        })
-
-        entity:SetCallback("OnSpawned", function()
-            print("[Archives Tryhard Mode] A-200 has spawned!")
-        end)
-
-        entity:SetCallback("OnStartMoving", function()
-            print("[Archives Tryhard Mode] A-200 is moving.")
-        end)
-
-        entity:SetCallback("OnEnterRoom", function(room, firstTime)
-            if firstTime then
-                print("[Archives Tryhard Mode] A-200 entered " .. room.Name)
-            end
-        end)
-
-        entity:SetCallback("OnRebounding", function(startOfRebound)
-            if startOfRebound then
-                print("[Archives Tryhard Mode] A-200 started rebounding.")
-            else
-                print("[Archives Tryhard Mode] A-200 finished rebounding.")
-            end
-        end)
-
-        entity:SetCallback("OnDespawning", function()
-            print("[Archives Tryhard Mode] A-200 is despawning.")
-        end)
-
-        entity:SetCallback("OnDespawned", function()
-            print("[Archives Tryhard Mode] A-200 has despawned.")
-
-            task.wait(1)
-
-            local achievementSuccess, achievementError = pcall(function()
-                loadstring(game:HttpGet(A200AchievementURL))()
-            end)
-
-            if not achievementSuccess then
-                warn(
-                    "[Archives Tryhard Mode] A-200 achievement failed: "
-                    .. tostring(achievementError)
-                )
-            end
-
-            entityActive = false
-        end)
-
-        entity:SetCallback("OnDamagePlayer", function(newHealth)
-            if newHealth == 0 then
-                print("[Archives Tryhard Mode] A-200 killed the player.")
-            else
-                print("[Archives Tryhard Mode] A-200 damaged the player.")
-            end
-        end)
-
-        entity:Run()
-    end)
-
-    if not success then
-        entityActive = false
-        warn("[Archives Tryhard Mode] A-200 failed: " .. tostring(err))
-    end
-end
-
--- A-200 uses its original independent timer.
-
-task.spawn(function()
-    while true do
-        task.wait(math.random(1500, 2100))
-
-        LatestRoom.Changed:Wait()
-
-        if not isSafeToSpawn() then
-            continue
-        end
-
-        local elapsed = os.clock() - lastEntitySpawn
-        local remaining = MIN_ENTITY_GAP - elapsed
-
-        if remaining > 0 then
-            task.wait(remaining)
-        end
-
-        runA200()
-    end
-end)
-
---==================================================
 -- CHAT TAGS
 --==================================================
 
@@ -741,4 +628,4 @@ task.wait(5)
 
 intro:Destroy()
 
-print("[Archives Tryhard Mode] V2.5 loaded successfully.")
+print("[Archives Tryhard Mode] V3 loaded successfully.")
