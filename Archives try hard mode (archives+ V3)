@@ -1,17 +1,18 @@
+
 --==================================================
 -- ARCHIVES TRYHARD MODE
--- VERSION 3
+-- VERSION 3 - FIXED SCHEDULER
 --==================================================
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting = game:GetService("Lighting")
-local RunService = game:GetService("RunService")
 local TextChatService = game:GetService("TextChatService")
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
 
 local localPlayer = Players.LocalPlayer
+local LatestRoom = ReplicatedStorage:WaitForChild("GameData"):WaitForChild("LatestRoom")
 
 --==================================================
 -- ENTITY SPAWNER
@@ -49,8 +50,6 @@ DoorsBottomText(
     "Good luck surviving the Archives."
 )
 
-local LatestRoom = ReplicatedStorage:WaitForChild("GameData"):WaitForChild("LatestRoom")
-
 --==================================================
 -- SCHEDULER CONFIGURATION
 --==================================================
@@ -58,16 +57,16 @@ local LatestRoom = ReplicatedStorage:WaitForChild("GameData"):WaitForChild("Late
 local MIN_DOOR = 8
 local MAX_DOOR = 1300
 
-local entityActive = false
-
 local MIN_ENTITY_GAP = 25
 local COOLDOWN_DOORS = 5
 
+local entityActive = false
 local lastEntitySpawn = 0
 
 local lastSpawnedRooms = {
-    Shocker = -10,
+    Threat = -10,
     Ripper = -10,
+    Shocker = -10,
     Cease = -10,
     Firebrand = -10,
     B244 = -10,
@@ -78,8 +77,7 @@ local lastSpawnedRooms = {
     Spacecrack = -10,
     Banflee = -10,
     A60 = -10,
-    GOD = -10,
-    Threat = -10
+    GOD = -10
 }
 
 --==================================================
@@ -206,8 +204,244 @@ local function showA60Warning()
         ):Play()
 
         task.wait(1.1)
-
         ScreenGui:Destroy()
+    end)
+end
+
+--==================================================
+-- THREAT
+--==================================================
+
+local function spawnThreat()
+    if not canSpawn("Threat") then return end
+
+    entityActive = true
+    lastSpawnedRooms.Threat = LatestRoom.Value
+    lastEntitySpawn = os.clock()
+
+    print("[Archives Tryhard Mode] Threat spawning.")
+
+    local success, err = pcall(function()
+        local pinkColor = Color3.fromRGB(255, 20, 147)
+
+        for _, v in ipairs(workspace:GetDescendants()) do
+            if v:IsA("PointLight") or v:IsA("SpotLight") then
+                v.Color = pinkColor
+            end
+        end
+
+        local Threat = Spawner:Create({
+            Entity = {
+                Name = "Threat",
+                Asset = "https://raw.githubusercontent.com/FireGiraffe/Favorites-Mode-Doors/main/Threat.rbxm",
+                HeightOffset = 0
+            },
+
+            Movement = {
+                Speed = 425,
+                Delay = 1,
+                Reversed = false
+            },
+
+            Damage = {
+                Enabled = true,
+                IgnoreHiding = false,
+                Range = 45,
+                Amount = 125
+            },
+
+            Rebounding = {
+                Enabled = true,
+                Type = "Ambush",
+                Min = 5,
+                Max = 8,
+                Delay = 2
+            },
+
+            Lights = {
+                Flicker = {Enabled = true, Duration = 1},
+                Shatter = false,
+                Repair = false
+            },
+
+            Earthquake = {Enabled = false},
+
+            CameraShake = {
+                Enabled = true,
+                Values = {1.8, 75, 0.1, 1},
+                Range = 120
+            },
+
+            Crucifixion = {
+                Type = "Curious",
+                Enabled = true,
+                Range = 40,
+                Resist = false,
+                Break = true
+            },
+
+            Death = {
+                Type = "Curious",
+                Hints = {
+                    "You died to Threat.",
+                    "The lights turn pink signaling its arrival.",
+                    "Threat is also extremely loud, indicating when it rebounds.",
+                    "Use what you've learned from Ambush!"
+                },
+                Cause = "Threat"
+            }
+        })
+
+        Threat:SetCallback("OnSpawned", function()
+            local model = Threat.Model
+            if not model then return end
+
+            local spawnSound = Instance.new("Sound")
+            spawnSound.SoundId = "rbxassetid://3359047385"
+            spawnSound.Volume = 2
+            spawnSound.Parent = workspace
+            spawnSound:Play()
+            Debris:AddItem(spawnSound, 5)
+
+            local baseSound = Instance.new("Sound")
+            baseSound.SoundId = "rbxassetid://92141520425325"
+            baseSound.Volume = 1.8
+            baseSound.Parent = model
+            baseSound:Play()
+        end)
+
+        Threat:SetCallback("OnDespawned", function()
+            entityActive = false
+            print("[Archives Tryhard Mode] Threat despawned.")
+        end)
+
+        Threat:Run(true)
+    end)
+
+    if not success then
+        entityActive = false
+        warn("[Archives Tryhard Mode] Threat failed: " .. tostring(err))
+    end
+end
+
+--==================================================
+-- RIPPER
+--==================================================
+
+local function spawnRipper()
+    if not canSpawn("Ripper") then return end
+
+    entityActive = true
+    lastSpawnedRooms.Ripper = LatestRoom.Value
+    lastEntitySpawn = os.clock()
+
+    print("[Archives Tryhard Mode] Ripper warning started.")
+
+    local success, err = pcall(function()
+        local redColor = Color3.fromRGB(180, 20, 20)
+
+        for _, v in ipairs(workspace:GetDescendants()) do
+            if v:IsA("PointLight") or v:IsA("SpotLight") then
+                v.Color = redColor
+            end
+        end
+
+        Lighting.Ambient = Color3.fromRGB(80, 10, 10)
+
+        local roar = Instance.new("Sound")
+        roar.SoundId = "rbxassetid://12971875415"
+        roar.Volume = 3
+        roar.Parent = workspace
+        roar:Play()
+        Debris:AddItem(roar, 6)
+    end)
+
+    if not success then
+        entityActive = false
+        warn("[Archives Tryhard Mode] Ripper warning failed: " .. tostring(err))
+        return
+    end
+
+    task.delay(3.5, function()
+        if not isSafeToSpawn() then
+            entityActive = false
+            return
+        end
+
+        local spawnSuccess, spawnError = pcall(function()
+            local Ripper = Spawner:Create({
+                Entity = {
+                    Name = "Ripper",
+                    Asset = "https://raw.githubusercontent.com/FireGiraffe/Favorites-Mode-Doors/main/Ripper.rbxm",
+                    HeightOffset = 0
+                },
+
+                Movement = {
+                    Speed = 160,
+                    Delay = 0.2,
+                    Reversed = false
+                },
+
+                Damage = {
+                    Enabled = true,
+                    IgnoreHiding = false,
+                    Range = 50,
+                    Amount = 125
+                },
+
+                Rebounding = {
+                    Enabled = false,
+                    Type = "Ambush",
+                    Min = 1,
+                    Max = 1,
+                    Delay = 2
+                },
+
+                Lights = {
+                    Flicker = {Enabled = false},
+                    Shatter = false,
+                    Repair = false
+                },
+
+                Earthquake = {Enabled = false},
+
+                CameraShake = {
+                    Enabled = true,
+                    Values = {2.5, 30, 0.1, 1},
+                    Range = 140
+                },
+
+                Crucifixion = {
+                    Type = "Curious",
+                    Enabled = true,
+                    Range = 40,
+                    Resist = false,
+                    Break = true
+                },
+
+                Death = {
+                    Type = "Curious",
+                    Hints = {
+                        "You died to Ripper.",
+                        "His arrival is shown by the light color and his roar.",
+                        "Hide until he is gone."
+                    },
+                    Cause = "Ripper"
+                }
+            })
+
+            Ripper:SetCallback("OnDespawned", function()
+                entityActive = false
+                print("[Archives Tryhard Mode] Ripper despawned.")
+            end)
+
+            Ripper:Run(true)
+        end)
+
+        if not spawnSuccess then
+            entityActive = false
+            warn("[Archives Tryhard Mode] Ripper failed: " .. tostring(spawnError))
+        end
     end)
 end
 
@@ -240,15 +474,15 @@ local function runEntity(name, url, warningCallback)
     end)
 
     if not success then
-        warn("[Archives Tryhard Mode] " .. name .. " failed: " .. tostring(err))
         entityActive = false
+        warn("[Archives Tryhard Mode] " .. name .. " failed: " .. tostring(err))
         return
     end
 
     print("[Archives Tryhard Mode] " .. name .. " was triggered.")
 
-    -- External entity scripts do not share a common despawn callback.
-    -- Release the scheduler lock after the minimum global gap.
+    -- Fallback lock timeout: external scripts do not expose
+    -- a shared OnDespawned callback to this scheduler.
     task.delay(MIN_ENTITY_GAP, function()
         entityActive = false
     end)
@@ -257,108 +491,276 @@ end
 --==================================================
 -- ENTITY CONFIGURATION
 --==================================================
-local function spawnThreat()
-if entityActive or not isSafeToSpawn() then return end
-entityActive = true
-lastSpawnedRooms.Threat = LatestRoom.Value
-print("[Favorites Mode] Threat spawning")
 
-local pinkColor = Color3.fromRGB(255, 20, 147)  
-for _, v in pairs(workspace:GetDescendants()) do  
-	if v:IsA("PointLight") or v:IsA("SpotLight") then  
-		v.Color = pinkColor  
-	end  
-end  
+local Entities = {
+    {
+        Name = "Shocker",
+        URL = "https://raw.githubusercontent.com/ItzzGabbbb/MainStuffGABSDOORSMODS/refs/heads/main/HardcoreModeRemake/Shocker",
+        Min = 30,
+        Max = 90
+    },
 
-local Threat = Spawner:Create({  
-	Entity = {  
-		Name = "Threat",  
-		Asset = "https://raw.githubusercontent.com/FireGiraffe/Favorites-Mode-Doors/main/Threat.rbxm",  
-		HeightOffset = 0  
-	},  
-	Movement = {Speed = 425, Delay = 1, Reversed = false},  
-	Damage = {Enabled = true, IgnoreHiding = false, Range = 45, Amount = 125},  
-	Rebounding = {Enabled = true, Type = "Ambush", Min = 5, Max = 8, Delay = 2},  
-	Lights = {Flicker = {Enabled = true, Duration = 1}, Shatter = false, Repair = false},  
-	Earthquake = {Enabled = false},  
-	CameraShake = {Enabled = true, Values = {1.8, 75, 0.1, 1}, Range = 120},  
-	Crucifixion = {Type = "Curious", Enabled = true, Range = 40, Resist = false, Break = true},  
-	Death = {  
-		Type = "Curious",  
-		Hints = {"You died to Threat.", "The lights turn pink signaling its arrival.", "Threat is also extremely loud, indicating when it rebounds.", "Use what you've learned from Ambush!"},  
-		Cause = "Threat"  
-	}  
-})  
+    {
+        Name = "Cease",
+        URL = "https://raw.githubusercontent.com/titanic514/Customentity.lua/refs/heads/main/CeaseMod",
+        Min = 130,
+        Max = 210
+    },
 
-Threat:SetCallback("OnSpawned", function()  
-	local model = Threat.Model  
-	if not model then return end  
+    {
+        Name = "Firebrand",
+        URL = "https://raw.githubusercontent.com/Ilikerobloxdoors/Firebrand/refs/heads/main/Firebrand.lua",
+        Min = 240,
+        Max = 430
+    },
 
-	local spawnSound = Instance.new("Sound")  
-	spawnSound.SoundId = "rbxassetid://3359047385"  
-	spawnSound.Volume = 2  
-	spawnSound.Parent = workspace  
-	spawnSound:Play()  
-	game:GetService("Debris"):AddItem(spawnSound, 5)  
+    {
+        Name = "B244",
+        URL = "https://pastefy.app/9dkXpSyy/raw",
+        Min = 200,
+        Max = 400
+    },
 
-	local baseSound = Instance.new("Sound")  
-	baseSound.SoundId = "rbxassetid://92141520425325"  
-	baseSound.Volume = 1.8  
-	baseSound.Looped = false  
-	baseSound.Parent = model  
-	baseSound:Play()  
-end)  
+    {
+        Name = "R40",
+        URL = "https://raw.githubusercontent.com/ItzzGabbbb/R-40-Spawner-Fixed/refs/heads/main/Doors%20Entity%20R-40.txt",
+        Min = 490,
+        Max = 520
+    },
 
-Threat:SetCallback("OnDespawned", function()  
-	entityActive = false  
-end)  
+    {
+        Name = "Rayleigh",
+        URL = "https://raw.githubusercontent.com/sonicu645-cyber/Entities/main/Curious%20Bash.lua",
+        Min = 540,
+        Max = 690
+    },
 
-Threat:Run(true)
+    {
+        Name = "Monoxide",
+        URL = "https://raw.githubusercontent.com/eoyoustme/back/refs/heads/main/Monoxide1",
+        Min = 800,
+        Max = 900
+    },
 
+    {
+        Name = "Paralysis",
+        URL = "https://pastefy.app/BOBsMow0/raw",
+        Min = 450,
+        Max = 500
+    },
+
+    {
+        Name = "Spacecrack",
+        URL = "https://raw.githubusercontent.com/ItzzGabbbb/MainStuffGABSDOORSMODS/refs/heads/main/DoorsScripts/SpaceCrackSpawner",
+        Min = 2000,
+        Max = 3450
+    },
+
+    {
+        Name = "Banflee",
+        URL = "https://pastefy.app/r5hIrJYg/raw",
+        Min = 600,
+        Max = 1130
+    },
+
+    {
+        Name = "A60",
+        URL = "https://pastefy.app/i0GqHQtg/raw",
+        Min = 900,
+        Max = 1200,
+        Warning = showA60Warning
+    },
+
+    {
+        Name = "GOD",
+        URL = "https://pastefy.app/lAn7TCVE/raw",
+        Min = 1800,
+        Max = 3000
+    }
+}
+
+--==================================================
+-- WEIGHTED ENTITY SELECTION
+--==================================================
+
+local function chooseEntity()
+    local available = {}
+    local totalWeight = 0
+
+    for _, entity in ipairs(Entities) do
+        if canSpawn(entity.Name) then
+            local averageTime = (entity.Min + entity.Max) / 2
+            local weight = 1 / averageTime
+
+            totalWeight = totalWeight + weight
+
+            table.insert(available, {
+                Data = entity,
+                Weight = weight
+            })
+        end
+    end
+
+    if #available == 0 then
+        return nil
+    end
+
+    local roll = math.random() * totalWeight
+    local currentWeight = 0
+
+    for _, entry in ipairs(available) do
+        currentWeight = currentWeight + entry.Weight
+
+        if roll <= currentWeight then
+            return entry.Data
+        end
+    end
+
+    return available[#available].Data
 end
 
+--==================================================
+-- DOOR-BASED SPAWNING
+--==================================================
 
----
+local function spawnFromDoor()
+    local door = LatestRoom.Value
 
--- RIPPER
+    if door < MIN_DOOR or door > MAX_DOOR then
+        return
+    end
 
-local function spawnRipper()
-if entityActive or not isSafeToSpawn() then return end
-entityActive = true
-lastSpawnedRooms.Ripper = LatestRoom.Value
-print("[Favorites Mode] Ripper spawning")
+    if entityActive or not isSafeToSpawn() then
+        return
+    end
 
-local redColor = Color3.fromRGB(180, 20, 20)  
-for _, v in pairs(workspace:GetDescendants()) do  
-	if v:IsA("PointLight") or v:IsA("SpotLight") then  
-		v.Color = redColor  
-	end  
-end  
-Lighting.Ambient = Color3.fromRGB(80, 10, 10)  
+    if os.clock() - lastEntitySpawn < MIN_ENTITY_GAP then
+        return
+    end
 
-local roar = Instance.new("Sound")  
-roar.SoundId = "rbxassetid://12971875415"  
-roar.Volume = 3  
-roar.Parent = workspace  
-roar:Play()  
-game:GetService("Debris"):AddItem(roar, 6)  
+    local roll = math.random(1, 100)
 
-task.delay(3.5, function()  
-	if not isSafeToSpawn() then  
-		entityActive = false  
-		return  
-	end  
+    -- Threat: first 14% of the selection roll.
+    if roll <= 14 and canSpawn("Threat") then
+        spawnThreat()
+        return
+    end
 
-	local Ripper = Spawner:Create({  
-		Entity = {  
-			Name = "Ripper",  
-			Asset = "https://raw.githubusercontent.com/FireGiraffe/Favorites-Mode-Doors/main/Ripper.rbxm",  
-			HeightOffset = 0  
-		},  
-		Movement = {Speed = 160, Delay = 0.2, Reversed = false},  
-		Damage = {Enabled = true, IgnoreHiding = false, Range = 50, Amount = 125},  
-		Rebounding = {Enabled = false, Type = "Ambush", Min = 1, Max = 1, Delay = 2},  
-		Lights = {Flicker = {Enabled = false}, Shatter = false, Repair = false},  
+    -- Ripper: next 6% of the selection roll.
+    if roll <= 20 and canSpawn("Ripper") then
+        spawnRipper()
+        return
+    end
+
+    -- Otherwise select from the original entity roster.
+    -- This also acts as a fallback if Threat or Ripper
+    -- is on cooldown.
+    local selectedEntity = chooseEntity()
+
+    if selectedEntity then
+        runEntity(
+            selectedEntity.Name,
+            selectedEntity.URL,
+            selectedEntity.Warning
+        )
+    end
+end
+
+LatestRoom:GetPropertyChangedSignal("Value"):Connect(function()
+    spawnFromDoor()
+end)
+
+--==================================================
+-- SPRINT INTEGRATION
+--==================================================
+
+task.wait(10)
+
+local sprintSuccess, sprintError = pcall(function()
+    local source = game:HttpGet(
+        "https://raw.githubusercontent.com/FireGiraffe/Favorites-Mode-Doors/refs/heads/main/Sprint.lua"
+    )
+
+    local loadedSprint = loadstring(source)
+    assert(loadedSprint, "Failed to compile Sprint.lua")
+
+    loadedSprint()
+end)
+
+if not sprintSuccess then
+    warn("[Archives Tryhard Mode] Sprint integration failed: " .. tostring(sprintError))
+end
+
+--==================================================
+-- CHAT TAGS
+--==================================================
+
+local whitelist = {}
+local devs = {}
+
+local function isWhitelisted(username)
+    for _, name in ipairs(whitelist) do
+        if name == username then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function isDev(username)
+    for _, name in ipairs(devs) do
+        if name == username then
+            return true
+        end
+    end
+
+    return false
+end
+
+TextChatService.OnIncomingMessage = function(msg)
+    local properties = Instance.new("TextChatMessageProperties")
+
+    if msg.TextSource then
+        local username = msg.TextSource.Name
+
+        if isWhitelisted(username) then
+            properties.PrefixText =
+                "<font color='#0000FF'>[Credit]</font> " .. msg.PrefixText
+
+        elseif isDev(username) then
+            properties.PrefixText =
+                "<font color='#00FF00'>[Dev]</font> " .. msg.PrefixText
+
+        else
+            properties.PrefixText =
+                "<font color='#FF0000'>[Player]</font> " .. msg.PrefixText
+        end
+    end
+
+    return properties
+end
+
+--==================================================
+-- SEEK MUSIC PITCH
+--==================================================
+
+local function lowerPitch(sound)
+    sound.PlaybackSpeed = sound.PlaybackSpeed * 0.69
+end
+
+for _, descendant in ipairs(game:GetDescendants()) do
+    if descendant:IsA("Sound") and descendant.Name == "SeekMusic" then
+        lowerPitch(descendant)
+    end
+end
+
+--==================================================
+-- INTRO
+--==================================================
+
+local MainGame = require(
+    localPlayer.PlayerGui.MainUI.Initia = {Enabled = false}, Shatter = false, Repair = false},  
 		Earthquake = {Enabled = false},  
 		CameraShake = {Enabled = true, Values = {2.5, 30, 0.1, 1}, Range = 140},  
 		Crucifixion = {Type = "Curious", Enabled = true, Range = 40, Resist = false, Break = true},  
