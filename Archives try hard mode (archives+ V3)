@@ -1,3 +1,40 @@
+-- Archives Tryhard Mode: Startup Diagnostics
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local diagnosticGui = Instance.new("ScreenGui")
+diagnosticGui.Name = "ATM_Diagnostics"
+diagnosticGui.ResetOnSpawn = false
+diagnosticGui.DisplayOrder = 999
+diagnosticGui.Parent = playerGui
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(0.8, 0, 0, 65)
+statusLabel.Position = UDim2.new(0.1, 0, 0.05, 0)
+statusLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+statusLabel.BackgroundTransparency = 0.15
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLabel.TextScaled = true
+statusLabel.TextWrapped = true
+statusLabel.Font = Enum.Font.GothamBold
+statusLabel.Text = "ATM: Starting script..."
+statusLabel.Parent = diagnosticGui
+
+local function setStatus(message, isError)
+    statusLabel.Text = "Archives Tryhard Mode: " .. message
+
+    if isError then
+        statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+    else
+        statusLabel.TextColor3 = Color3.fromRGB(120, 255, 140)
+    end
+
+    warn("[ATM Diagnostics] " .. message)
+end
+
+setStatus("Script started.")
 
 
 --==================================================
