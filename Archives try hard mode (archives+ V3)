@@ -284,7 +284,7 @@ local Threat = Spawner:Create({
 	CameraShake = {Enabled = true, Values = {1.8, 75, 0.1, 1}, Range = 120},  
 	Crucifixion = {Type = "Curious", Enabled = true, Range = 40, Resist = false, Break = true},  
 	Death = {  
-		Type = "Guiding",  
+		Type = "Curious",  
 		Hints = {"You died to Threat.", "The lights turn pink signaling its arrival.", "Threat is also extremely loud, indicating when it rebounds.", "Use what you've learned from Ambush!"},  
 		Cause = "Threat"  
 	}  
@@ -320,6 +320,72 @@ end
 
 ---
 
+-- RIPPER
+
+local function spawnRipper()
+if entityActive or not isSafeToSpawn() then return end
+entityActive = true
+lastSpawnedRooms.Ripper = LatestRoom.Value
+print("[Favorites Mode] Ripper spawning")
+
+local redColor = Color3.fromRGB(180, 20, 20)  
+for _, v in pairs(workspace:GetDescendants()) do  
+	if v:IsA("PointLight") or v:IsA("SpotLight") then  
+		v.Color = redColor  
+	end  
+end  
+Lighting.Ambient = Color3.fromRGB(80, 10, 10)  
+
+local roar = Instance.new("Sound")  
+roar.SoundId = "rbxassetid://12971875415"  
+roar.Volume = 3  
+roar.Parent = workspace  
+roar:Play()  
+game:GetService("Debris"):AddItem(roar, 6)  
+
+task.delay(3.5, function()  
+	if not isSafeToSpawn() then  
+		entityActive = false  
+		return  
+	end  
+
+	local Ripper = Spawner:Create({  
+		Entity = {  
+			Name = "Ripper",  
+			Asset = "https://raw.githubusercontent.com/FireGiraffe/Favorites-Mode-Doors/main/Ripper.rbxm",  
+			HeightOffset = 0  
+		},  
+		Movement = {Speed = 160, Delay = 0.2, Reversed = false},  
+		Damage = {Enabled = true, IgnoreHiding = false, Range = 50, Amount = 125},  
+		Rebounding = {Enabled = false, Type = "Ambush", Min = 1, Max = 1, Delay = 2},  
+		Lights = {Flicker = {Enabled = false}, Shatter = false, Repair = false},  
+		Earthquake = {Enabled = false},  
+		CameraShake = {Enabled = true, Values = {2.5, 30, 0.1, 1}, Range = 140},  
+		Crucifixion = {Type = "Curious", Enabled = true, Range = 40, Resist = false, Break = true},  
+		Death = {  
+			Type = "Curious",  
+			Hints = {"You died to Ripper.", "His arrival is shown by the light color and his roar.", "Hide until he is gone."},  
+			Cause = "Ripper"  
+		}  
+	})  
+
+	Ripper:SetCallback("OnDespawned", function()  
+		entityActive = false  
+	end)  
+
+	Ripper:Run(true)  
+end)
+
+end
+
+
+---
+if (door - lastSpawnedRooms.Threat >= COOLDOWN_DOORS) and roll <= 14 then  
+	spawnThreat()  
+
+elseif (door - lastSpawnedRooms.Ripper >= COOLDOWN_DOORS) and roll <= 20 then  
+	spawnRipper()  
+
 local Entities = {
     {
         Name = "Shocker",
@@ -328,12 +394,6 @@ local Entities = {
         Max = 90
     },
 
-    {
-        Name = "Ripper",
-        URL = "https://raw.githubusercontent.com/ItzzGabbbb/RipperSpawner/refs/heads/main/RipperEntityFromHardcoreMode.lua",
-        Min = 90,
-        Max = 130
-    },
 
     {
         Name = "Cease",
@@ -488,6 +548,8 @@ LatestRoom:GetPropertyChangedSignal("Value"):Connect(function()
     end
 end)
 
+task.wait(10)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/FireGiraffe/Favorites-Mode-Doors/refs/heads/main/Sprint.lua"))()
 --==================================================
 -- CHAT TAGS
 --==================================================
